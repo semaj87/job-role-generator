@@ -1,0 +1,5 @@
+venv
+.DS_Store
+.env
+job-role-generator-box-diagram.HEIC
+job-role-generator-streamlit-design.HEIC
