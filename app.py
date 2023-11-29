@@ -1,8 +1,10 @@
 import os
 import requests
 import json
+import streamlit as st
 
-from utils.helper import get_keywords, test_data
+from utils.helper import get_keywords, test_data, cities, salaries
+from utils.custom import css_code
 from dotenv import find_dotenv, load_dotenv
 from linkedin_api import Linkedin
 from typing import Any
@@ -204,11 +206,58 @@ def generate_the_job_posts(summaries: list, query: str) -> str:
     return job_post
 
 
-# ------------------testing------------------ #
-# linkedin_profile: dict = get_linkedin_profile(linkedin_client, "jaymesaymer")
-job_search_sentence: str = job_search_sentence_generator(test_data)
-job_search_results: dict = serp_search_for_jobs(job_search_sentence)
-best_job_search_url: list = find_the_best_job_search_url(job_search_results, job_search_sentence)
-content: list = get_job_content_from_urls(best_job_search_url)
-job_summary: list = summarise_the_job_content(content, job_search_sentence)
-generated_job_post: str = generate_the_job_posts(job_summary, job_search_sentence)
+# ------------------streamlit------------------ #
+def _streamlit() -> None:
+    """
+    This function is used to build the streamlit web application
+    :return: None
+    """
+    st.set_page_config(page_title="Job post generator", page_icon="img/webworks87-favicon-light.png", layout="wide")
+
+    st.markdown(css_code, unsafe_allow_html=True)
+
+    # ------------------sidebar------------------ #
+    with st.sidebar:
+        st.image("img/webworks87-light-logo.jpg")
+        st.write("---")
+        st.write("App created by James Aymer")
+        st.info("Information", icon="ℹ️")
+
+    # ------------------header & main paragraph------------------ #
+    st.header("Job Post Generator")
+
+    st.write("Welcome! This app can be used to generate a list of jobs by enetering a few parameters:\n\n"
+             "1. LinkedIn profile\n2. Location/city\n3. Radius\n4. Salary")
+    st.write("---")
+
+    # ------------------columns------------------ #
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        query: Any = st.text_input("Enter your LinkedIn profile")
+
+        location: Any = st.selectbox(
+            "Location/City",
+            (city for city in cities)
+        )
+        # st.write("You selected the city of:", location)
+
+        salary: Any = st.selectbox(
+            "Salary",
+            (salary for salary in salaries)
+        )
+
+        st.slider("Radius (km)", 0, 100, 0)
+
+
+# ------------------main------------------ #
+def main() -> None:
+    """
+    Main function
+    :return: None
+    """
+    _streamlit()
+
+
+if __name__ == "__main__":
+    main()

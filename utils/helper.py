@@ -60,3 +60,14 @@ test_data: Any = {
                    'schoolUrn': 'urn:li:fs_miniSchool:123456'
                    }]
 }
+
+# ------------------streamlit cities set------------------ #
+cities = ["Amsterdam", "Frankfurt", "Hong Kong", "London", "Oslo", "Paris", "Singapore", "Tokyo"]
+
+
+# ------------------streamlit salaries list------------------ #
+salaries = [
+    "20k-40k", "40k-60k", "60k-80k", "80k-100k", "100k-120k",
+    "120k-140k", "140k-160k", "160k-180k", "180k-200k", "200k-220k",
+    "220k-240k"
+]
