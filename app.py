@@ -10,6 +10,7 @@ from langchain.chains import LLMChain
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredURLLoader
 from langchain.prompts import PromptTemplate
+from langchain.text_splitter import CharacterTextSplitter
 
 
 # ---------loading credentials--------- #
@@ -116,8 +117,98 @@ def find_the_best_job_search_url(response_data: dict, query: str) -> list:
     return url_list
 
 
+# ------------------data extraction from the job urls------------------ #
+def get_job_content_from_urls(urls: list) -> list:
+    """
+    This is a function is used to fetch the data from the passed in url list
+    :param urls: job urls
+    :return: list of extracted data
+    """
+    loader = UnstructuredURLLoader(urls=urls)
+    data = loader.load()
+
+    return data
+
+
+# ------------------prompt template and the gpt-3.5-turbo model------------------ #
+def summarise_the_job_content(data: list, query: str) -> list[str]:
+    """
+    This function is used to summarise the fetched job data using the gpt-3.5-turbo and prompt template
+    :param data: job data to summarise
+    :param query: query used for the job search
+    :return: list of summarised job specific text
+    """
+    text_splitter = CharacterTextSplitter(separator="\n", chunk_size=3000, chunk_overlap=200, length_function=len)
+    text = text_splitter.split_documents(data)
+
+    llm: Any = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0.7)
+    prompt_template: str = """
+    {text}
+    You're a world class job recruiter, and you'll summarise the text above in order to create a job posting {query}
+    Please follow all of the following rules when summarising:
+    1/ Make sure the content is engaging information with good data
+    2/ The content should address the {query} topic very well
+    3/ The content needs to written in a way that is easy to read and understand
+    4/ The content needs to give the reader some actions for applying to the jobs
+    5/ Only include content with a salary
+    
+    SUMMARY:
+    """
+
+    prompt: PromptTemplate = PromptTemplate(template=prompt_template, input_variables=["text", "query"])
+
+    llm_summariser: Any = LLMChain(llm=llm, prompt=prompt, verbose=True)
+
+    summaries: list = []
+
+    for chunk in enumerate(text):
+        print(chunk)
+        summary = llm_summariser.predict(text=chunk, query=query)
+        summaries.append(summary)
+
+    print(summaries)
+    return summaries
+
+
+# ------------------prompt template and the gpt-3.5-turbo model------------------ #
+def generate_the_job_posts(summaries: list, query: str) -> str:
+    """
+    This function is used to feed the summaries into an LLM, to generate job posts using a prompt template
+    :param summaries: summarised job text
+    :param query: query used for the job search
+    :return: generated job posts
+    """
+    summaries_str = str(summaries)
+
+    llm = Any = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0.7)
+    prompt_template = """
+    {summaries_str}
+    You are a world class recruiter with a lot of experience and the text above is some content about {query}. 
+    Please write a job post about {query} using the text above, whilst following all the rules below:
+    1/ The job posts needs to be engaging and informative with good data
+    2/ Make sure the job posts are easily readable, and not too long
+    3/ The job posts should address the {query} topic very well
+    4/ The job posts need to be written in a way that is easy to read and understand
+    6/ The job posts need to give the reader some actions for applying to the jobs
+    7/ The job posts need to clearly display the salary
+    
+    JOB POST:
+    """
+
+    prompt: PromptTemplate = PromptTemplate(template=prompt_template, input_variables=["summaries_str", "query"])
+
+    job_post_chain: Any = LLMChain(llm=llm, prompt=prompt, verbose=True)
+
+    job_post: Any = job_post_chain.predict(summaries_str=summaries_str, query=query)
+
+    return job_post
+
+
 # ------------------testing------------------ #
 # linkedin_profile: dict = get_linkedin_profile(linkedin_client, "jaymesaymer")
 job_search_sentence: str = job_search_sentence_generator(test_data)
 job_search_results: dict = serp_search_for_jobs(job_search_sentence)
 best_job_search_url: list = find_the_best_job_search_url(job_search_results, job_search_sentence)
+content: list = get_job_content_from_urls(best_job_search_url)
+job_summary: list = summarise_the_job_content(content, job_search_sentence)
+generated_job_post: str = generate_the_job_posts(job_summary, job_search_sentence)

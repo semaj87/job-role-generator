@@ -1,7 +1,10 @@
 from datetime import datetime
 from typing import Any
+import streamlit as st
+import time
 
 
+# ------------------LinkedIn keyword dict------------------ #
 def get_keywords(keyword: str, data: dict) -> str:
     """
     This helper function is used to retrieve keyword information from a user profile
@@ -17,6 +20,22 @@ def get_keywords(keyword: str, data: dict) -> str:
         "most_recent_industry": data.get("experience")[0]["company"]["industries"]
     }
     return keywords_map[keyword]
+
+
+# ------------------progress bar------------------ #
+def progress_bar(user_feedback: list[str], amount_of_time: int = 20) -> None:
+    """
+    This function is used to create a progress bar to improve the UX
+    :param user_feedback: messages to output with the progress bar
+    :param amount_of_time: time taken to sleep
+    :return: None
+    """
+    with st.status("AI models hard at work", expanded=True) as status:
+        st.write(user_feedback[1])
+        time.sleep(amount_of_time)
+        st.write(user_feedback[2])
+        time.sleep(1)
+        status.update(label=f"Download {user_feedback[0]} of 5 complete!", state="complete", expanded=False)
 
 
 # ------------------test LinkedIn user profile data------------------ #
