@@ -23,7 +23,7 @@ def get_keywords(keyword: str, data: dict) -> str:
 
 
 # ------------------progress bar------------------ #
-def progress_bar(user_feedback: list[str], amount_of_time: int = 20) -> None:
+def ui_progress_bar(user_feedback: list[str], amount_of_time: int = 20) -> None:
     """
     This function is used to create a progress bar to improve the UX
     :param user_feedback: messages to output with the progress bar
@@ -36,6 +36,36 @@ def progress_bar(user_feedback: list[str], amount_of_time: int = 20) -> None:
         st.write(user_feedback[2])
         time.sleep(1)
         status.update(label=f"Download {user_feedback[0]} of 5 complete!", state="complete", expanded=False)
+
+
+# ------------------UI author information------------------ #
+def ui_info() -> None:
+    ui_spacer(1)
+    st.write("Made by [James Aymer](https://www.linkedin.com/in/jamesaymer/)", unsafe_allow_html=True)
+    st.markdown('Source code can be found [here](https://github.com/semaj87/job-role-generator)')
+
+
+def ui_text_update_markdown(text: str, alignment: str) -> str:
+    text_update: list[str] = '<div style="text-align: alignment;">text</div>'.split("text<")
+    tmp_string = text_update[0] + text + text_update[-1]
+    alignment_update: list[str] = tmp_string.split("alignment")
+    updated_markdown: str = alignment_update[0] + alignment + alignment_update[-1]
+
+    return updated_markdown
+
+
+def ui_text_align(markdown_text: str) -> None:
+    st.markdown(markdown_text, unsafe_allow_html=True)
+
+
+# ------------------UI spacer------------------ #
+def ui_spacer(n=2, line=False, next_n=0):
+    for _ in range(n):
+        st.write('')
+    if line:
+        st.tabs([' '])
+    for _ in range(next_n):
+        st.write('')
 
 
 # ------------------test LinkedIn user profile data------------------ #
@@ -64,10 +94,15 @@ test_data: Any = {
 # ------------------streamlit cities set------------------ #
 cities = ["Amsterdam", "Frankfurt", "Hong Kong", "London", "Oslo", "Paris", "Singapore", "Tokyo"]
 
-
 # ------------------streamlit salaries list------------------ #
 salaries = [
     "20k-40k", "40k-60k", "60k-80k", "80k-100k", "100k-120k",
     "120k-140k", "140k-160k", "160k-180k", "180k-200k", "200k-220k",
     "220k-240k"
+]
+
+# ------------------streamlit models list------------------ #
+models = [
+    "gpt-3.5-turbo", "flan-t5-base", "fastchat-t5-3b-v1.0",
+    "BELLE-7B-2M", "m2m100_418M", "mbart-large-50"
 ]

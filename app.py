@@ -1,19 +1,20 @@
-import os
-import requests
 import json
-import streamlit as st
-
-from utils.helper import get_keywords, test_data, cities, salaries
-from utils.custom import css_code
-from dotenv import find_dotenv, load_dotenv
-from linkedin_api import Linkedin
+import os
 from typing import Any
+
+import requests
+import streamlit as st
+from dotenv import find_dotenv, load_dotenv
 from langchain.chains import LLMChain
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredURLLoader
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import CharacterTextSplitter
+from linkedin_api import Linkedin
 
+from utils.custom import css_code
+from utils.messages import welcome_message, header_message
+from utils.helper import get_keywords, cities, salaries, models, ui_spacer, ui_info, ui_text_update_markdown, ui_text_align
 
 # ---------loading credentials--------- #
 load_dotenv(find_dotenv())
@@ -220,34 +221,39 @@ def _streamlit() -> None:
     with st.sidebar:
         st.image("img/webworks87-light-logo.jpg")
         st.write("---")
-        st.write("App created by James Aymer")
-        st.info("Information", icon="ℹ️")
+        st.selectbox(
+            "Choose your model",
+            (model for model in models)
+        )
+        ui_spacer(4)
+        st.write("Set the temperature of the completion. Higher values make the output more random, "
+                 "lower values make it more focussed")
+        ui_spacer(1)
+        st.slider("Temperature", 0.00, 1.00, 0.00)
+        ui_spacer(21)
+        ui_info()
 
     # ------------------header & main paragraph------------------ #
-    st.header("Job Post Generator")
+    st.header(header_message)
+    st.write(welcome_message)
 
-    st.write("Welcome! This app can be used to generate a list of jobs by enetering a few parameters:\n\n"
-             "1. LinkedIn profile\n2. Location/city\n3. Radius\n4. Salary")
-    st.write("---")
-
-    # ------------------columns------------------ #
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        query: Any = st.text_input("Enter your LinkedIn profile")
+    # ------------------form for handling all elements in a batch------------------ #
+    with st.form("user_entry_form"):
+        query: Any = st.text_input("LinkedIn profile")
 
         location: Any = st.selectbox(
             "Location/City",
             (city for city in cities)
         )
-        # st.write("You selected the city of:", location)
 
         salary: Any = st.selectbox(
             "Salary",
             (salary for salary in salaries)
         )
-
-        st.slider("Radius (km)", 0, 100, 0)
+        ui_spacer(1)
+        st.slider("Radius(km)", 0, 100, 0)
+        ui_spacer(1)
+        submitted: Any = st.form_submit_button("Submit")
 
 
 # ------------------main------------------ #
