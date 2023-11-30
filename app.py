@@ -13,7 +13,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from linkedin_api import Linkedin
 
 from utils.custom import css_code
-from utils.messages import welcome_message, header_message
+from utils.messages import welcome_message, header_message, side_bar_message
 from utils.helper import get_keywords, cities, salaries, models, ui_spacer, ui_info, ui_text_update_markdown, ui_text_align
 
 # ---------loading credentials--------- #
@@ -220,26 +220,31 @@ def _streamlit() -> None:
     # ------------------sidebar------------------ #
     with st.sidebar:
         st.image("img/webworks87-light-logo.jpg")
-        st.write("---")
-        st.selectbox(
-            "Choose your model",
-            (model for model in models)
-        )
-        ui_spacer(4)
-        st.write("Set the temperature of the completion. Higher values make the output more random, "
-                 "lower values make it more focussed")
-        ui_spacer(1)
-        st.slider("Temperature", 0.00, 1.00, 0.00)
-        ui_spacer(21)
+        # st.write("---")
+        with st.form("side_bar_entry_form"):
+            x = st.selectbox(
+                "Choose your model",
+                (model for model in models)
+            )
+            ui_spacer(4)
+            st.write(side_bar_message)
+            ui_spacer(1)
+            y = st.slider("Temperature", 0.00, 1.00, 0.00)
+            ui_spacer(2)
+            side_bar_submit: Any = st.form_submit_button("Submit")
+        ui_spacer(18)
         ui_info()
+
+        if side_bar_submit:
+            print("Hello")
 
     # ------------------header & main paragraph------------------ #
     st.header(header_message)
     st.write(welcome_message)
 
     # ------------------form for handling all elements in a batch------------------ #
-    with st.form("user_entry_form"):
-        query: Any = st.text_input("LinkedIn profile")
+    with st.form("main_entry_form"):
+        linkedin_profile: Any = st.text_input("LinkedIn profile")
 
         location: Any = st.selectbox(
             "Location/City",
@@ -253,7 +258,12 @@ def _streamlit() -> None:
         ui_spacer(1)
         st.slider("Radius(km)", 0, 100, 0)
         ui_spacer(1)
-        submitted: Any = st.form_submit_button("Submit")
+        main_submitted: Any = st.form_submit_button("Submit")
+
+    if main_submitted:
+        st.write(linkedin_profile)
+        st.write(location)
+        st.write(salary)
 
 
 # ------------------main------------------ #
