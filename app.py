@@ -13,8 +13,8 @@ from langchain.text_splitter import CharacterTextSplitter
 from linkedin_api import Linkedin
 
 from utils.custom import css_code
+from utils.helper import get_keywords, cities, salaries, models, ui_spacer, ui_info, ui_progress_bar, progress_bar_map
 from utils.messages import welcome_message, header_message, side_bar_message
-from utils.helper import get_keywords, cities, salaries, models, ui_spacer, ui_info, ui_text_update_markdown, ui_text_align
 
 # ---------loading credentials--------- #
 load_dotenv(find_dotenv())
@@ -174,7 +174,7 @@ def summarise_the_job_content(data: list, query: str) -> list[str]:
 
 
 # ------------------prompt template and the gpt-3.5-turbo model------------------ #
-def generate_the_job_posts(summaries: list, query: str) -> str:
+def generate_the_job_list(summaries: list, query: str) -> str:
     """
     This function is used to feed the summaries into an LLM, to generate job posts using a prompt template
     :param summaries: summarised job text
@@ -222,21 +222,19 @@ def _streamlit() -> None:
         st.image("img/webworks87-light-logo.jpg")
         # st.write("---")
         with st.form("side_bar_entry_form"):
-            x = st.selectbox(
+            model: Any = st.selectbox(
                 "Choose your model",
                 (model for model in models)
             )
             ui_spacer(4)
             st.write(side_bar_message)
             ui_spacer(1)
-            y = st.slider("Temperature", 0.00, 1.00, 0.00)
+            temperature: Any = st.slider("Temperature", 0.00, 1.00, 0.00)
             ui_spacer(2)
             side_bar_submit: Any = st.form_submit_button("Submit")
+
         ui_spacer(18)
         ui_info()
-
-        if side_bar_submit:
-            print("Hello")
 
     # ------------------header & main paragraph------------------ #
     st.header(header_message)
@@ -256,14 +254,54 @@ def _streamlit() -> None:
             (salary for salary in salaries)
         )
         ui_spacer(1)
-        st.slider("Radius(km)", 0, 100, 0)
+        radius: Any = st.slider("Radius(km)", 0, 100, 0)
         ui_spacer(1)
-        main_submitted: Any = st.form_submit_button("Submit")
+        main_submit: Any = st.form_submit_button("Submit")
 
-    if main_submitted:
-        st.write(linkedin_profile)
-        st.write(location)
-        st.write(salary)
+    # ------------------passing main form & sidebar form variables to functions------------------ #
+    if main_submit:
+
+        linkedin_profile_result: dict[str, str] = get_linkedin_profile(client=linkedin_client, username=linkedin_profile)
+        ui_progress_bar(user_feedback=progress_bar_map.get("get_linkedin_profile"))
+
+        job_keywords_result: str = get_job_related_keywords(linkedin_profile_dict=linkedin_profile_result, keyword="most_recent_job_title")
+        ui_progress_bar(user_feedback=progress_bar_map.get("get_job_related_keywords"))
+
+        job_search_generator_result: str = job_search_sentence_generator(linkedin_profile_dict=linkedin_profile_result)
+        ui_progress_bar(user_feedback=progress_bar_map.get("generate_job_search_query"))
+
+        serp_search_job_result: dict = serp_search_for_jobs(query=job_search_generator_result)
+        ui_progress_bar(user_feedback=progress_bar_map.get("search_for_job_roles"))
+
+        find_best_job_result: list = find_the_best_job_search_url(response_data=serp_search_job_result, query=job_search_generator_result)
+        ui_progress_bar(user_feedback=progress_bar_map.get("find_the_best_job_urls"))
+
+        get_job_content_result: list = get_job_content_from_urls(urls=find_best_job_result)
+        ui_progress_bar(user_feedback=progress_bar_map.get("get_content_from_urls"))
+
+        summarise_job_content_result: list[str] = summarise_the_job_content(data=get_job_content_result, query=job_search_generator_result)
+        ui_progress_bar(user_feedback=progress_bar_map.get("summarise_content"))
+
+        generate_job_list_result: str = generate_the_job_list(summaries=summarise_job_content_result, query=job_search_generator_result)
+        ui_progress_bar(user_feedback=progress_bar_map.get("generate_job_list"))
+
+        # ------------------UI output------------------ #
+        with st.expander("LinkedIn profile"):
+            st.info(linkedin_profile_result)
+        with st.expander("Job Keywords results"):
+            st.info(job_keywords_result)
+        with st.expander("Job search generator"):
+            st.info(job_search_generator_result)
+        with st.expander("Job search results"):
+            st.info(serp_search_job_result)
+        with st.expander("Best jobs results"):
+            st.info(find_best_job_result)
+        with st.expander("Job content results"):
+            st.info(get_job_content_result)
+        with st.expander("Summarised job content results"):
+            st.info(summarise_job_content_result)
+        with st.expander("Generated job list results"):
+            st.info(generate_job_list_result)
 
 
 # ------------------main------------------ #

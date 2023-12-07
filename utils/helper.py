@@ -35,7 +35,7 @@ def ui_progress_bar(user_feedback: list[str], amount_of_time: int = 20) -> None:
         time.sleep(amount_of_time)
         st.write(user_feedback[2])
         time.sleep(1)
-        status.update(label=f"Download {user_feedback[0]} of 5 complete!", state="complete", expanded=False)
+        status.update(label=f"Download {user_feedback[0]} of 8 complete!", state="complete", expanded=False)
 
 
 # ------------------UI author information------------------ #
@@ -92,7 +92,7 @@ test_data: Any = {
 }
 
 # ------------------streamlit cities set------------------ #
-cities = ["Amsterdam", "Frankfurt", "Hong Kong", "London", "Oslo", "Paris", "Singapore", "Tokyo"]
+cities = ["Amsterdam", "Copenhagen", "Frankfurt", "Hong Kong", "London", "Oslo", "Paris", "Singapore", "Tokyo"]
 
 # ------------------streamlit salaries list------------------ #
 salaries = [
@@ -106,3 +106,15 @@ models = [
     "gpt-3.5-turbo", "flan-t5-base", "fastchat-t5-3b-v1.0",
     "BELLE-7B-2M", "m2m100_418M", "mbart-large-50"
 ]
+
+# ------------------progress bar map------------------ #
+progress_bar_map: dict = {
+    "get_linkedin_profile": [1, "Retrieving linkedin profile...", "Profile found."],
+    "get_job_related_keywords": [2, "Extracting job related keywords...", "Keywords extracted."],
+    "generate_job_search_query": [3, "Generating job query...", "Query generated."],
+    "search_for_job_roles": [4, "Searching for job roles...", "Job roles found."],
+    "find_the_best_job_urls": [5, "Searching for top job URLs...", "URLs found."],
+    "get_content_from_urls": [6, "Extracting job content from the URLs...", "Content extracted."],
+    "summarise_content": [7, "Summarising job content...", "J content summarised."],
+    "generate_job_list": [8, "Generating job list...", "Job list generated."]
+}
