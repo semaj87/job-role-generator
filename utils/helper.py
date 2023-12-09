@@ -1,7 +1,34 @@
+import os
+import time
 from datetime import datetime
 from typing import Any
+
 import streamlit as st
-import time
+from huggingface_hub import login
+from langchain.chat_models import ChatOpenAI
+from transformers import pipeline
+
+HUGGINGFACE_API_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
+
+# ---------huggingface login--------- #
+login(token=HUGGINGFACE_API_TOKEN)
+
+
+def model_validator(model: Any, temperature: Any) -> Any:
+    """
+    This helper function is used to generate the correct syntax for the models,
+    depending on whether they are from huggingface or openai
+    :param model: generative model
+    :param temperature: randomness of model output
+    :return: model call logic
+    """
+    if model == "gpt-3.5-turbo":
+        model_call: Any = ChatOpenAI(model_name=model, temperature=temperature)
+    else:
+        login(token=HUGGINGFACE_API_TOKEN)
+        model_call: Any = pipeline("text-generation", model=model)
+
+    return model_call
 
 
 # ------------------LinkedIn keyword dict------------------ #
@@ -22,7 +49,7 @@ def get_keywords(keyword: str, data: dict) -> str:
     return keywords_map[keyword]
 
 
-# ------------------progress bar------------------ #
+# ------------------UI progress bar------------------ #
 def ui_progress_bar(user_feedback: list[str], amount_of_time: int = 20) -> None:
     """
     This function is used to create a progress bar to improve the UX
@@ -103,8 +130,7 @@ salaries = [
 
 # ------------------streamlit models list------------------ #
 models = [
-    "gpt-3.5-turbo", "flan-t5-base", "fastchat-t5-3b-v1.0",
-    "BELLE-7B-2M", "m2m100_418M", "mbart-large-50"
+    "gpt-3.5-turbo", "meta-llama/Llama-2-7b-chat-hf"
 ]
 
 # ------------------progress bar map------------------ #
